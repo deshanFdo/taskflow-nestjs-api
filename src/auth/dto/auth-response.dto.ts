@@ -21,3 +21,4 @@ export class AuthResponseDto {
   @ApiProperty({ type: UserProfileDto })
   user: UserProfileDto;
 }
+
