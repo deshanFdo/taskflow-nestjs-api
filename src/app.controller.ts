@@ -38,7 +38,6 @@ export class AppController {
               roseDark: '#e11d48',
               sky: '#e0f2fe',
               skyDark: '#0284c7',
-              card: '#ffffff',
             }
           }
         }
@@ -54,9 +53,17 @@ export class AppController {
     .custom-scroll::-webkit-scrollbar { width: 5px; }
     .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
     .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    @keyframes toastSlideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    .animate-toast { animation: toastSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
   </style>
 </head>
 <body class="min-h-screen flex selection:bg-indigo-100 selection:text-indigo-900 antialiased overflow-x-hidden bg-[#f8fafc]">
+
+  <!-- FLOATING TOAST NOTIFICATION CONTAINER -->
+  <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
 
   <!-- LEFT SIDEBAR -->
   <aside id="sidebar" class="w-64 pastel-sidebar fixed inset-y-0 left-0 z-40 flex flex-col transition-all duration-300 shadow-sm">
@@ -177,7 +184,7 @@ export class AppController {
                 <span id="metricTotal" class="text-3xl font-extrabold text-slate-900 font-mono">0</span>
                 <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">Active Phases</span>
               </div>
-              <p class="text-[11px] text-slate-400 mt-2">Active phases in your curriculum</p>
+              <p class="text-[11px] text-slate-400 mt-2">Active phases in curriculum</p>
             </div>
 
             <div class="pastel-card rounded-2xl p-5 shadow-xs">
@@ -476,30 +483,35 @@ export class AppController {
     </main>
   </div>
 
-  <!-- EDIT / CUSTOMIZE MILESTONE MODAL -->
+  <!-- 1. EDIT / CUSTOMIZE MILESTONE MODAL -->
   <div id="editModal" class="hidden fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 border border-slate-200 shadow-xl">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 border border-slate-200 shadow-xl transition-all">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <h3 class="font-bold text-slate-900 text-sm">Customize Milestone</h3>
-        <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-700 text-lg leading-none">&times;</button>
+        <div class="flex items-center space-x-2">
+          <div class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          </div>
+          <h3 class="font-bold text-slate-900 text-sm">Customize Deliverable</h3>
+        </div>
+        <button onclick="closeEditModal()" class="w-7 h-7 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center text-lg leading-none transition">&times;</button>
       </div>
 
       <input type="hidden" id="editMilestoneId">
 
       <div>
         <label class="block text-xs font-semibold text-slate-700 mb-1">Milestone Title</label>
-        <input type="text" id="editTitle" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 text-slate-800 outline-none focus:bg-white focus:border-indigo-500">
+        <input type="text" id="editTitle" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 text-slate-800 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition">
       </div>
 
       <div>
         <label class="block text-xs font-semibold text-slate-700 mb-1">Description</label>
-        <textarea id="editDesc" rows="3" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 text-slate-800 outline-none focus:bg-white focus:border-indigo-500"></textarea>
+        <textarea id="editDesc" rows="3" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 text-slate-800 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition"></textarea>
       </div>
 
       <div class="grid grid-cols-2 gap-3">
         <div>
           <label class="block text-xs font-semibold text-slate-700 mb-1">Status</label>
-          <select id="editStatus" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 text-slate-800 outline-none">
+          <select id="editStatus" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition">
             <option value="PENDING">PENDING</option>
             <option value="IN_PROGRESS">IN_PROGRESS</option>
             <option value="COMPLETED">COMPLETED</option>
@@ -507,7 +519,7 @@ export class AppController {
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-700 mb-1">Priority</label>
-          <select id="editPriority" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 text-slate-800 outline-none">
+          <select id="editPriority" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition">
             <option value="LOW">LOW</option>
             <option value="MEDIUM">MEDIUM</option>
             <option value="HIGH">HIGH</option>
@@ -518,38 +530,43 @@ export class AppController {
 
       <div>
         <label class="block text-xs font-semibold text-slate-700 mb-1">Tags (comma-separated)</label>
-        <input type="text" id="editTags" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 text-slate-800 outline-none focus:bg-white focus:border-indigo-500" placeholder="Research, Simulation, Paper">
+        <input type="text" id="editTags" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 text-slate-800 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition" placeholder="Research, Simulation, Paper">
       </div>
 
       <div class="flex items-center justify-end space-x-2 pt-2">
-        <button onclick="closeEditModal()" class="px-4 py-2 bg-slate-100 text-slate-600 hover:text-slate-900 rounded-xl text-xs font-semibold">Cancel</button>
-        <button onclick="saveEditMilestone()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs">Save Changes</button>
+        <button onclick="closeEditModal()" class="px-4 py-2 bg-slate-100 text-slate-600 hover:text-slate-900 rounded-xl text-xs font-semibold transition">Cancel</button>
+        <button onclick="saveEditMilestone()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs transition">Save Changes</button>
       </div>
     </div>
   </div>
 
-  <!-- CREATE MILESTONE MODAL -->
+  <!-- 2. CREATE MILESTONE MODAL -->
   <div id="createModal" class="hidden fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 border border-slate-200 shadow-xl">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 border border-slate-200 shadow-xl transition-all">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <h3 class="font-bold text-slate-900 text-sm">Create New Deliverable</h3>
-        <button onclick="closeCreateModal()" class="text-slate-400 hover:text-slate-700 text-lg leading-none">&times;</button>
+        <div class="flex items-center space-x-2">
+          <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          </div>
+          <h3 class="font-bold text-slate-900 text-sm">Create New Deliverable</h3>
+        </div>
+        <button onclick="closeCreateModal()" class="w-7 h-7 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center text-lg leading-none transition">&times;</button>
       </div>
 
       <div>
         <label class="block text-xs font-semibold text-slate-700 mb-1">Milestone Title</label>
-        <input type="text" id="newTitle" placeholder="e.g. Milestone 7: Final Defense Presentation" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 text-slate-800 outline-none focus:bg-white focus:border-indigo-500">
+        <input type="text" id="newTitle" placeholder="e.g. Milestone 7: Final Defense Presentation" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 text-slate-800 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition">
       </div>
 
       <div>
         <label class="block text-xs font-semibold text-slate-700 mb-1">Description</label>
-        <textarea id="newDesc" rows="3" placeholder="Outline specific deliverables and methodologies..." class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 text-slate-800 outline-none focus:bg-white focus:border-indigo-500"></textarea>
+        <textarea id="newDesc" rows="3" placeholder="Outline specific deliverables and methodologies..." class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 text-slate-800 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition"></textarea>
       </div>
 
       <div class="grid grid-cols-2 gap-3">
         <div>
           <label class="block text-xs font-semibold text-slate-700 mb-1">Status</label>
-          <select id="newStatus" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 text-slate-800 outline-none">
+          <select id="newStatus" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition">
             <option value="PENDING">PENDING</option>
             <option value="IN_PROGRESS" selected>IN_PROGRESS</option>
             <option value="COMPLETED">COMPLETED</option>
@@ -557,7 +574,7 @@ export class AppController {
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-700 mb-1">Priority</label>
-          <select id="newPriority" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 text-slate-800 outline-none">
+          <select id="newPriority" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2 text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition">
             <option value="CRITICAL">CRITICAL</option>
             <option value="HIGH" selected>HIGH</option>
             <option value="MEDIUM">MEDIUM</option>
@@ -568,12 +585,70 @@ export class AppController {
 
       <div>
         <label class="block text-xs font-semibold text-slate-700 mb-1">Tags (comma-separated)</label>
-        <input type="text" id="newTags" value="Research, Deliverable" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 text-slate-800 outline-none focus:bg-white focus:border-indigo-500">
+        <input type="text" id="newTags" value="Research, Deliverable" class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-2.5 text-slate-800 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition">
       </div>
 
       <div class="flex items-center justify-end space-x-2 pt-2">
-        <button onclick="closeCreateModal()" class="px-4 py-2 bg-slate-100 text-slate-600 hover:text-slate-900 rounded-xl text-xs font-semibold">Cancel</button>
-        <button onclick="submitCreateMilestone()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs">Create Milestone</button>
+        <button onclick="closeCreateModal()" class="px-4 py-2 bg-slate-100 text-slate-600 hover:text-slate-900 rounded-xl text-xs font-semibold transition">Cancel</button>
+        <button onclick="submitCreateMilestone()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs transition">Create Milestone</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. CUSTOM CONFIRMATION POPUP MODAL -->
+  <div id="confirmModal" class="hidden fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 border border-slate-200 shadow-2xl text-center">
+      <div id="confirmIconContainer" class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 border border-rose-100 mx-auto flex items-center justify-center">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+      </div>
+      <div>
+        <h3 id="confirmTitle" class="text-sm font-extrabold text-slate-900">Confirm Action</h3>
+        <p id="confirmMessage" class="text-xs text-slate-500 mt-1 leading-relaxed">Are you sure you want to proceed?</p>
+      </div>
+      <div class="flex items-center justify-center space-x-2.5 pt-2">
+        <button id="btnConfirmCancel" onclick="closeConfirmModal(false)" class="flex-1 py-2 px-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">Cancel</button>
+        <button id="btnConfirmAccept" onclick="closeConfirmModal(true)" class="flex-1 py-2 px-3.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-xs transition">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. QUICK INSPECT / DETAIL MODAL -->
+  <div id="inspectModal" class="hidden fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 border border-slate-200 shadow-xl">
+      <div class="flex items-start justify-between border-b border-slate-100 pb-3 gap-3">
+        <div>
+          <span id="inspectPriorityBadge" class="text-[9px] font-extrabold px-2 py-0.5 rounded border inline-block mb-1.5"></span>
+          <h3 id="inspectTitle" class="text-sm font-extrabold text-slate-900 leading-snug"></h3>
+        </div>
+        <button onclick="closeInspectModal()" class="w-7 h-7 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center text-lg leading-none transition">&times;</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <span class="text-[11px] font-semibold text-slate-500 block mb-1">Deliverable Scope & Methodology:</span>
+          <p id="inspectDescription" class="text-slate-700 bg-slate-50 p-3.5 rounded-xl border border-slate-200/70 leading-relaxed max-h-48 overflow-y-auto custom-scroll"></p>
+        </div>
+
+        <div id="inspectAiBox" class="hidden">
+          <span class="text-[11px] font-semibold text-indigo-700 block mb-1">AI Research Synthesis:</span>
+          <p id="inspectAiSummary" class="text-indigo-900 bg-indigo-50/70 p-3 rounded-xl border border-indigo-100 font-mono leading-relaxed"></p>
+        </div>
+
+        <div>
+          <span class="text-[11px] font-semibold text-slate-500 block mb-1">Domain Classifications:</span>
+          <div id="inspectTags" class="flex flex-wrap gap-1.5 pt-0.5"></div>
+        </div>
+
+        <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+          <span id="inspectStatusBadge" class="font-bold"></span>
+          <span id="inspectTimestamp" class="font-mono text-[10px]"></span>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end space-x-2 pt-2 border-t border-slate-100">
+        <button onclick="closeInspectModal()" class="px-4 py-2 bg-slate-100 text-slate-600 hover:text-slate-900 rounded-xl text-xs font-semibold transition">Close</button>
+        <button id="btnInspectEdit" class="px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl text-xs font-bold transition">Edit</button>
+        <button id="btnInspectAdvance" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs transition">Advance &rarr;</button>
       </div>
     </div>
   </div>
@@ -586,6 +661,108 @@ export class AppController {
     let currentMilestones = [];
     let debounceTimer = null;
     let currentFullSynthesized = null;
+    let confirmResolver = null;
+
+    // --- POPUP: Toast Notification System ---
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      
+      const config = {
+        success: {
+          bg: 'bg-emerald-50 text-emerald-900 border-emerald-200',
+          icon: '<svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>'
+        },
+        error: {
+          bg: 'bg-rose-50 text-rose-900 border-rose-200',
+          icon: '<svg class="w-4 h-4 text-rose-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+        },
+        info: {
+          bg: 'bg-sky-50 text-sky-900 border-sky-200',
+          icon: '<svg class="w-4 h-4 text-sky-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+        }
+      }[type] || config.info;
+
+      toast.className = 'animate-toast pointer-events-auto flex items-center space-x-2.5 px-4 py-3 rounded-2xl border shadow-lg ' + config.bg + ' max-w-sm text-xs font-semibold transition-all duration-300';
+      toast.innerHTML = config.icon + '<span class="flex-1">' + message + '</span>';
+
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-10px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // --- POPUP: Custom Confirmation Modal ---
+    function askConfirm({ title, message, confirmText = 'Confirm' }) {
+      return new Promise((resolve) => {
+        confirmResolver = resolve;
+        document.getElementById('confirmTitle').textContent = title || 'Confirm Action';
+        document.getElementById('confirmMessage').textContent = message || 'Are you sure you want to proceed?';
+        document.getElementById('btnConfirmAccept').textContent = confirmText;
+        document.getElementById('confirmModal').classList.remove('hidden');
+      });
+    }
+
+    function closeConfirmModal(result) {
+      document.getElementById('confirmModal').classList.add('hidden');
+      if (confirmResolver) {
+        confirmResolver(result);
+        confirmResolver = null;
+      }
+    }
+
+    // --- POPUP: Quick Inspect Details Modal ---
+    function openInspectModal(id) {
+      const m = currentMilestones.find(item => item.id === id);
+      if (!m) return;
+
+      const priorityColors = {
+        CRITICAL: 'bg-rose-50 text-rose-700 border-rose-200',
+        HIGH: 'bg-amber-50 text-amber-700 border-amber-200',
+        MEDIUM: 'bg-sky-50 text-sky-700 border-sky-200',
+        LOW: 'bg-slate-100 text-slate-600 border-slate-200',
+      }[m.priority] || 'bg-slate-100 text-slate-600';
+
+      const statusLabels = {
+        PENDING: 'Planned / Pending Phase',
+        IN_PROGRESS: 'In Progress (Active Research)',
+        COMPLETED: 'Completed & Validated Deliverable'
+      }[m.status] || m.status;
+
+      document.getElementById('inspectTitle').textContent = m.title;
+      document.getElementById('inspectDescription').textContent = m.description || 'No detailed scope breakdown provided.';
+      
+      const pBadge = document.getElementById('inspectPriorityBadge');
+      pBadge.textContent = m.priority;
+      pBadge.className = 'text-[9px] font-extrabold px-2 py-0.5 rounded border inline-block mb-1.5 ' + priorityColors;
+
+      const aiBox = document.getElementById('inspectAiBox');
+      if (m.ai_summary) {
+        aiBox.classList.remove('hidden');
+        document.getElementById('inspectAiSummary').textContent = m.ai_summary;
+      } else {
+        aiBox.classList.add('hidden');
+      }
+
+      document.getElementById('inspectTags').innerHTML = (m.tags || []).map(tg =>
+        '<span class="text-[10px] px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-100 font-mono font-medium">' + tg + '</span>'
+      ).join('');
+
+      document.getElementById('inspectStatusBadge').textContent = statusLabels;
+      document.getElementById('inspectTimestamp').textContent = 'ID: ' + m.id.substring(0, 8) + '...';
+
+      document.getElementById('btnInspectEdit').onclick = () => { closeInspectModal(); openEditModal(m.id); };
+      document.getElementById('btnInspectAdvance').onclick = () => { closeInspectModal(); advanceStatus(m.id, m.status); };
+
+      document.getElementById('inspectModal').classList.remove('hidden');
+    }
+
+    function closeInspectModal() {
+      document.getElementById('inspectModal').classList.add('hidden');
+    }
 
     // --- Clock & Date Widget ---
     function updateLiveClock() {
@@ -665,7 +842,6 @@ export class AppController {
       if (e) e.preventDefault();
       const email = document.getElementById('loginEmail').value.trim();
       const password = document.getElementById('loginPassword').value;
-      const alertBox = document.getElementById('authAlert');
 
       try {
         const res = await fetch('/auth/login', {
@@ -680,12 +856,10 @@ export class AppController {
         currentUser = data.user;
         localStorage.setItem('unibench_token', authToken);
         localStorage.setItem('unibench_user', JSON.stringify(currentUser));
-        alertBox.classList.add('hidden');
+        showToast('Welcome back, ' + (currentUser.fullName || 'User') + '!', 'success');
         bootApp();
       } catch (err) {
-        alertBox.className = 'mt-4 p-3 rounded-xl text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200';
-        alertBox.textContent = err.message;
-        alertBox.classList.remove('hidden');
+        showToast(err.message, 'error');
       }
     }
 
@@ -694,7 +868,6 @@ export class AppController {
       const fullName = document.getElementById('regFullName').value.trim();
       const email = document.getElementById('regEmail').value.trim();
       const password = document.getElementById('regPassword').value;
-      const alertBox = document.getElementById('authAlert');
 
       try {
         const res = await fetch('/auth/register', {
@@ -709,12 +882,10 @@ export class AppController {
         currentUser = data.user;
         localStorage.setItem('unibench_token', authToken);
         localStorage.setItem('unibench_user', JSON.stringify(currentUser));
-        alertBox.classList.add('hidden');
+        showToast('Workspace created successfully!', 'success');
         bootApp();
       } catch (err) {
-        alertBox.className = 'mt-4 p-3 rounded-xl text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200';
-        alertBox.textContent = err.message;
-        alertBox.classList.remove('hidden');
+        showToast(err.message, 'error');
       }
     }
 
@@ -723,6 +894,7 @@ export class AppController {
       currentUser = null;
       localStorage.removeItem('unibench_token');
       localStorage.removeItem('unibench_user');
+      showToast('Signed out of workspace', 'info');
       bootApp();
     }
 
@@ -881,14 +1053,14 @@ export class AppController {
         '<span class="text-[10px] px-2 py-0.5 rounded-md bg-indigo-50/80 text-indigo-700 border border-indigo-100 font-mono font-medium">' + tag + '</span>'
       ).join('');
 
-      return '<div class="pastel-card rounded-xl p-4 space-y-2.5 text-left shadow-xs">' +
+      return '<div class="pastel-card rounded-xl p-4 space-y-2.5 text-left shadow-xs cursor-pointer" onclick="openInspectModal(\\'' + t.id + '\\')">' +
         '<div class="flex items-start justify-between gap-2">' +
-          '<h4 class="font-bold text-xs text-slate-800 leading-snug flex-1">' + t.title + '</h4>' +
+          '<h4 class="font-bold text-xs text-slate-800 leading-snug flex-1 hover:text-indigo-600 transition">' + t.title + '</h4>' +
           '<span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded border ' + priorityColors + '">' + t.priority + '</span>' +
         '</div>' +
         (t.description ? '<p class="text-[11px] text-slate-500 leading-relaxed line-clamp-3">' + t.description + '</p>' : '') +
         (t.ai_summary ? '<div class="text-[10px] text-indigo-900 bg-indigo-50/60 p-2.5 rounded-lg border border-indigo-100 leading-relaxed"><span class="font-bold text-indigo-700">Synthesis:</span> ' + t.ai_summary + '</div>' : '') +
-        '<div class="flex items-center justify-between pt-2 border-t border-slate-100">' +
+        '<div class="flex items-center justify-between pt-2 border-t border-slate-100" onclick="event.stopPropagation()">' +
           '<div class="flex flex-wrap gap-1">' + tagsHtml + '</div>' +
           '<div class="flex items-center space-x-1.5 text-[11px]">' +
             '<button onclick="advanceStatus(\\'' + t.id + '\\', \\'' + t.status + '\\')" class="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 hover:bg-indigo-600 text-slate-600 hover:text-white transition font-medium" title="Advance Phase">&rarr;</button>' +
@@ -921,7 +1093,7 @@ export class AppController {
       const rawTags = document.getElementById('newTags').value;
       const tags = rawTags.split(',').map(s => s.trim()).filter(Boolean);
 
-      if (!title) return alert('Please enter a milestone title');
+      if (!title) return showToast('Please enter a milestone title', 'error');
 
       try {
         const res = await fetch('/tasks', {
@@ -929,13 +1101,14 @@ export class AppController {
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
           body: JSON.stringify({ title, description, status, priority, tags })
         });
-        if (!res.ok) throw new Error('Creation failed');
+        if (!res.ok) throw new Error('Failed to create milestone');
         closeCreateModal();
         document.getElementById('newTitle').value = '';
         document.getElementById('newDesc').value = '';
+        showToast('Milestone created successfully!', 'success');
         fetchMilestones();
         fetchMetrics();
-      } catch (e) { alert(e.message); }
+      } catch (e) { showToast(e.message, 'error'); }
     }
 
     function openEditModal(id) {
@@ -968,9 +1141,10 @@ export class AppController {
         });
         if (!res.ok) throw new Error('Update failed');
         closeEditModal();
+        showToast('Deliverable updated successfully!', 'success');
         fetchMilestones();
         fetchMetrics();
-      } catch (e) { alert(e.message); }
+      } catch (e) { showToast(e.message, 'error'); }
     }
 
     async function advanceStatus(id, currentStatus) {
@@ -982,28 +1156,38 @@ export class AppController {
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
           body: JSON.stringify({ status: nextStatus })
         });
+        showToast('Phase advanced to ' + nextStatus, 'info');
         fetchMilestones();
         fetchMetrics();
       } catch (e) {}
     }
 
     async function deleteMilestone(id) {
-      if (!confirm('Are you sure you want to delete this deliverable?')) return;
+      const confirmed = await askConfirm({
+        title: 'Delete Deliverable?',
+        message: 'Are you sure you want to delete this milestone? This action cannot be undone.',
+        confirmText: 'Delete'
+      });
+      if (!confirmed) return;
+
       try {
-        await fetch('/tasks/' + id, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + authToken } });
+        const res = await fetch('/tasks/' + id, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + authToken } });
+        if (!res.ok) throw new Error('Delete failed');
+        showToast('Deliverable deleted', 'info');
         fetchMilestones();
         fetchMetrics();
-      } catch (e) {}
+      } catch (e) { showToast(e.message, 'error'); }
     }
 
     // --- Full AI Synthesizer View ---
     function loadSampleFypNote() {
       document.getElementById('aiRawInputFull').value = "Supervisor meeting: Characterize phase transition and optical signal drift on photonic integrated circuit emulators. Compare Joules per MAC energy consumption against 4nm CMOS GPU baseline for Chapter 4 dissertation results. Target completion next month.";
+      showToast('Sample research note loaded', 'info');
     }
 
     async function synthesizeMilestoneFull() {
       const input = document.getElementById('aiRawInputFull').value.trim();
-      if (!input) return alert('Please enter research notes or deliverable specifications!');
+      if (!input) return showToast('Please enter research notes or deliverable specifications!', 'error');
 
       const btnText = document.getElementById('btnSynthesizeFullText');
       const spinner = document.getElementById('btnSynthesizeFullSpinner');
@@ -1035,8 +1219,9 @@ export class AppController {
         ).join('');
 
         document.getElementById('aiFullPreviewBox').classList.remove('hidden');
+        showToast('AI synthesis completed with Gemini 2.5 Flash', 'success');
       } catch (e) {
-        alert(e.message);
+        showToast(e.message, 'error');
       } finally {
         btnText.textContent = 'Synthesize with Gemini';
         spinner.classList.add('hidden');
@@ -1058,13 +1243,13 @@ export class AppController {
           })
         });
         if (!res.ok) throw new Error('Persistence failed');
-        alert('Deliverable saved to your private workspace!');
+        showToast('Deliverable saved to your workspace!', 'success');
         document.getElementById('aiFullPreviewBox').classList.add('hidden');
         document.getElementById('aiRawInputFull').value = '';
         switchView('tracker');
         fetchMilestones();
         fetchMetrics();
-      } catch (e) { alert(e.message); }
+      } catch (e) { showToast(e.message, 'error'); }
     }
 
     // --- Project Customization Settings ---
@@ -1081,7 +1266,7 @@ export class AppController {
       localStorage.setItem('unibench_custom_supervisor', supervisor);
 
       document.getElementById('sidebarProjectTitle').textContent = title || 'UniBench FYP';
-      alert('Preferences saved successfully!');
+      showToast('Workspace preferences saved!', 'success');
     }
 
     function loadCustomSettings() {
