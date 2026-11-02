@@ -14,9 +14,9 @@
 
 ## 🌐 Live Deployment & Interactive Docs
 
-* **Live API Base URL**: `https://taskflow-nestjs-api.vercel.app` *(or custom Vercel domain)*
-* **Interactive Swagger UI**: [`/docs`](https://taskflow-nestjs-api.vercel.app/docs) or [`/api`](https://taskflow-nestjs-api.vercel.app/api)
-* **Cloud Telemetry & Health**: [`/health`](https://taskflow-nestjs-api.vercel.app/health)
+* **Live API Base URL**: [https://taskflow-nestjs-api-six.vercel.app](https://taskflow-nestjs-api-six.vercel.app)
+* **Interactive Swagger UI**: [https://taskflow-nestjs-api-six.vercel.app/docs/](https://taskflow-nestjs-api-six.vercel.app/docs/) or [https://taskflow-nestjs-api-six.vercel.app/api/](https://taskflow-nestjs-api-six.vercel.app/api/)
+* **Cloud Telemetry & Health**: [https://taskflow-nestjs-api-six.vercel.app/health](https://taskflow-nestjs-api-six.vercel.app/health)
 
 ---
 
