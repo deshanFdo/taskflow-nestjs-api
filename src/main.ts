@@ -45,6 +45,16 @@ export function setupSwagger(app: any) {
 
 export async function createNestServer(): Promise<Express> {
   if (!isAppInitialized) {
+    // Shield internal Swagger documentation from public access in production
+    server.use(['/docs', '/api'], (req: Request, res: Response, next: any) => {
+      const isDevKeyProvided = req.query.key === 'developer';
+      const isExplicitlyEnabled = process.env.ENABLE_SWAGGER === 'true';
+      if (process.env.NODE_ENV === 'production' && !isExplicitlyEnabled && !isDevKeyProvided) {
+        return res.redirect('/');
+      }
+      next();
+    });
+
     const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
     app.enableCors({
       origin: '*',

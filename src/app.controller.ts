@@ -13,7 +13,7 @@ export class AppController {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>UniBench FYP | Research & Milestone Tracker</title>
+  <title>UniBench FYP | Research & Milestone Operating System</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -47,7 +47,7 @@ export class AppController {
   <style>
     body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #1e293b; }
     .pastel-sidebar { background: #ffffff; border-right: 1px solid #e2e8f0; }
-    .pastel-nav { background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(12px); border-bottom: 1px solid #e2e8f0; }
+    .pastel-nav { background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(12px); border-bottom: 1px solid #e2e8f0; }
     .pastel-card { background: #ffffff; border: 1px solid #e2e8f0; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
     .pastel-card:hover { transform: translateY(-2px); border-color: #cbd5e1; box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.08), 0 8px 10px -6px rgba(99, 102, 241, 0.04); }
     .custom-scroll::-webkit-scrollbar { width: 5px; }
@@ -65,8 +65,8 @@ export class AppController {
   <!-- FLOATING TOAST NOTIFICATION CONTAINER -->
   <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
 
-  <!-- LEFT SIDEBAR -->
-  <aside id="sidebar" class="w-64 pastel-sidebar fixed inset-y-0 left-0 z-40 flex flex-col transition-all duration-300 shadow-sm">
+  <!-- AUTHENTICATED LEFT SIDEBAR (Hidden by default on Login/Public view) -->
+  <aside id="sidebar" class="hidden w-64 pastel-sidebar fixed inset-y-0 left-0 z-40 flex flex-col transition-all duration-300 shadow-sm">
     
     <!-- Sidebar Header -->
     <div class="h-20 flex items-center px-6 border-b border-slate-200/80 gap-3 bg-white">
@@ -107,69 +107,164 @@ export class AppController {
         <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
         <span>Privacy & Zero-Trust</span>
       </button>
-
-      <div class="pt-4 pb-2 border-t border-slate-200">
-        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3.5">API & Documentation</span>
-      </div>
-
-      <a href="/docs" target="_blank" class="w-full flex items-center space-x-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-indigo-600 hover:bg-slate-50 transition">
-        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
-        <span>Swagger OpenAPI</span>
-      </a>
-
-      <a href="https://github.com/deshanFdo/taskflow-nestjs-api" target="_blank" class="w-full flex items-center space-x-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-indigo-600 hover:bg-slate-50 transition">
-        <svg class="w-4 h-4 text-slate-400 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-        <span>GitHub Repository</span>
-      </a>
     </nav>
 
     <!-- Sidebar Bottom User Profile -->
     <div class="p-4 border-t border-slate-200 bg-slate-50/70" id="sidebarUserProfile">
-      <!-- Populated dynamically based on session -->
+      <!-- Populated dynamically when logged in -->
     </div>
   </aside>
 
-  <!-- MAIN VIEWPORT (Offset by Sidebar) -->
-  <div class="flex-1 ml-64 flex flex-col min-h-screen bg-[#f8fafc]">
+  <!-- MAIN VIEWPORT (Starts full-width; ml-64 added only after authentication) -->
+  <div id="mainViewport" class="flex-1 w-full min-h-screen flex flex-col bg-[#f8fafc] transition-all duration-300">
 
     <!-- Top Navigation Header -->
-    <header class="h-20 pastel-nav sticky top-0 z-30 flex items-center justify-between px-8">
+    <header class="h-20 pastel-nav sticky top-0 z-30 flex items-center justify-between px-6 lg:px-10">
       
-      <!-- Left: Dynamic Subheader & Active View Title -->
-      <div>
-        <h2 id="viewHeaderTitle" class="text-base font-extrabold text-slate-900 tracking-tight">Milestone Tracker</h2>
-        <p id="viewHeaderSubtitle" class="text-xs text-slate-500">Track and customize your research deliverables</p>
+      <!-- Left: Header Identity -->
+      <div class="flex items-center space-x-3">
+        <!-- Logo (Visible on landing page or workspace) -->
+        <div id="headerBrandLogo" class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-400 p-[1.5px] shadow-sm flex items-center justify-center">
+          <div class="w-full h-full bg-white rounded-2xl flex items-center justify-center">
+            <svg class="w-4.5 h-4.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-center space-x-2">
+            <h2 id="viewHeaderTitle" class="text-sm font-extrabold text-slate-900 tracking-tight">UniBench</h2>
+            <span id="viewHeaderBadge" class="text-[9px] font-bold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-100">Research OS</span>
+          </div>
+          <p id="viewHeaderSubtitle" class="text-[11px] text-slate-500">Autonomous research deliverables & substrate benchmarking</p>
+        </div>
       </div>
 
-      <!-- Right: Live Clock & Date Widget + Action Button -->
-      <div class="flex items-center space-x-3.5">
+      <!-- Right: Live Clock & Action Button -->
+      <div class="flex items-center space-x-3">
         
         <!-- Live Clock & Date Widget -->
-        <div class="flex items-center space-x-3 px-3.5 py-1.5 rounded-xl bg-white border border-slate-200/90 shadow-xs">
-          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <div class="flex items-center space-x-2.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
           <div class="text-right">
             <div id="liveClock" class="font-mono text-xs font-bold text-slate-800 tracking-wider">--:--:-- --</div>
-            <div id="liveDate" class="text-[10px] text-indigo-600 font-semibold">Loading date...</div>
+            <div id="liveDate" class="text-[9px] text-indigo-600 font-semibold">Loading...</div>
           </div>
         </div>
 
         <!-- Add Milestone Button (Only visible when logged in) -->
-        <button id="btnHeaderNewMilestone" onclick="openCreateModal()" class="hidden px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center space-x-2">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-          <span>New Milestone</span>
+        <button id="btnHeaderNewMilestone" onclick="openCreateModal()" class="hidden px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center space-x-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          <span>New Deliverable</span>
         </button>
 
-        <!-- Sign In Button (When logged out) -->
-        <button id="btnHeaderSignIn" onclick="focusAuthModal()" class="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs transition">
+        <!-- Sign In Shortcut Button (When logged out) -->
+        <button id="btnHeaderSignIn" onclick="focusAuthModal()" class="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs transition">
           Sign In
         </button>
       </div>
     </header>
 
-    <!-- Main Content Container -->
-    <main class="flex-1 p-8 space-y-6">
+    <!-- Main Content Area -->
+    <main class="flex-1 p-6 lg:p-8">
       
-      <!-- AUTHENTICATED WORKSPACE CONTAINER -->
+      <!-- ============================================== -->
+      <!-- PUBLIC LANDING & AUTHENTICATION PORTAL (NO SIDEBAR) -->
+      <!-- ============================================== -->
+      <div id="unauthGateContainer" class="max-w-4xl mx-auto my-6 space-y-10">
+        
+        <!-- Hero Header -->
+        <div class="text-center space-y-3 pt-4">
+          <span class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold border border-indigo-100">
+            <span>✨</span>
+            <span>Intelligent Research & Milestone Platform</span>
+          </span>
+          <h1 class="text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight">
+            Academic Research, Formalized & Tracked.
+          </h1>
+          <p class="text-xs lg:text-sm text-slate-500 max-w-xl mx-auto leading-relaxed">
+            Manage your Final Year Project deliverables, hardware substrate benchmarks, and supervisor meeting notes with AI-powered synthesis and zero-trust isolation.
+          </p>
+        </div>
+
+        <!-- Centered Authentication Card -->
+        <div class="max-w-md mx-auto pastel-card rounded-3xl p-8 shadow-sm border border-slate-200 bg-white">
+          
+          <div class="text-center mb-6">
+            <h2 class="text-lg font-extrabold text-slate-900 tracking-tight">Researcher Portal</h2>
+            <p class="text-xs text-slate-500 mt-1">Sign in to your private workspace or create a new isolated account.</p>
+          </div>
+
+          <!-- Auth Tabs: Sign In vs Create Account -->
+          <div class="flex rounded-xl bg-slate-100 p-1 mb-5 border border-slate-200/80">
+            <button id="tabBtnLogin" onclick="switchAuthTab('login')" class="flex-1 py-1.5 text-xs font-bold rounded-lg bg-white text-slate-900 shadow-xs transition">Sign In</button>
+            <button id="tabBtnRegister" onclick="switchAuthTab('register')" class="flex-1 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition">Create Account</button>
+          </div>
+
+          <!-- Sign In Form -->
+          <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
+              <input type="email" id="loginEmail" required class="w-full bg-slate-50 text-xs rounded-xl px-3.5 py-2.5 border border-slate-200 text-slate-900 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition" placeholder="name@domain.com">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Password</label>
+              <input type="password" id="loginPassword" required class="w-full bg-slate-50 text-xs rounded-xl px-3.5 py-2.5 border border-slate-200 text-slate-900 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition" placeholder="••••••••">
+            </div>
+            <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition shadow-xs">
+              Sign In to Workspace
+            </button>
+          </form>
+
+          <!-- Register Form -->
+          <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-4 hidden">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
+              <input type="text" id="regFullName" required class="w-full bg-slate-50 text-xs rounded-xl px-3.5 py-2.5 border border-slate-200 text-slate-900 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition" placeholder="e.g. Alex Morgan">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
+              <input type="email" id="regEmail" required class="w-full bg-slate-50 text-xs rounded-xl px-3.5 py-2.5 border border-slate-200 text-slate-900 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition" placeholder="name@domain.com">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Password</label>
+              <input type="password" id="regPassword" required minlength="6" class="w-full bg-slate-50 text-xs rounded-xl px-3.5 py-2.5 border border-slate-200 text-slate-900 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition" placeholder="Min. 6 characters">
+            </div>
+            <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition shadow-xs">
+              Create Isolated Workspace
+            </button>
+          </form>
+
+          <div class="mt-6 pt-4 border-t border-slate-100 text-center">
+            <p class="text-[11px] text-slate-400">Zero-Trust Architecture: Your records are strictly partitioned by cryptographic JWT session.</p>
+          </div>
+        </div>
+
+        <!-- 3-Column Feature Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 pt-4">
+          <div class="pastel-card rounded-2xl p-5 space-y-2">
+            <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm">📋</div>
+            <h3 class="text-xs font-bold text-slate-900">Kanban Sprint Boards</h3>
+            <p class="text-[11px] text-slate-500 leading-relaxed">Advance deliverables seamlessly across Pending, In Progress, and Completed states.</p>
+          </div>
+
+          <div class="pastel-card rounded-2xl p-5 space-y-2">
+            <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-sm">✨</div>
+            <h3 class="text-xs font-bold text-slate-900">Gemini 2.5 AI Synthesis</h3>
+            <p class="text-[11px] text-slate-500 leading-relaxed">Convert meeting takeaways and experimental notes into structured action items.</p>
+          </div>
+
+          <div class="pastel-card rounded-2xl p-5 space-y-2">
+            <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">🔒</div>
+            <h3 class="text-xs font-bold text-slate-900">Zero-Trust PostgreSQL</h3>
+            <p class="text-[11px] text-slate-500 leading-relaxed">Strict row-level isolation guarantees external accounts cannot see your research.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================== -->
+      <!-- AUTHENTICATED WORKSPACE CONTAINER (WITH SIDEBAR) -->
+      <!-- ============================================== -->
       <div id="authAppContainer" class="hidden space-y-6">
 
         <!-- 1. TRACKER VIEW (Kanban & List) -->
@@ -179,16 +274,16 @@ export class AppController {
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             
             <div class="pastel-card rounded-2xl p-5 shadow-xs">
-              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Total Milestones</span>
+              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Total Deliverables</span>
               <div class="flex items-baseline justify-between">
                 <span id="metricTotal" class="text-3xl font-extrabold text-slate-900 font-mono">0</span>
                 <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">Active Phases</span>
               </div>
-              <p class="text-[11px] text-slate-400 mt-2">Active phases in curriculum</p>
+              <p class="text-[11px] text-slate-400 mt-2">Active phases in your curriculum</p>
             </div>
 
             <div class="pastel-card rounded-2xl p-5 shadow-xs">
-              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Completion Progress</span>
+              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Completion Rate</span>
               <div class="flex items-baseline justify-between">
                 <span id="metricRate" class="text-3xl font-extrabold text-emerald-600 font-mono">0%</span>
                 <span id="metricCompleted" class="text-xs text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">0 done</span>
@@ -420,64 +515,6 @@ export class AppController {
           </div>
         </div>
 
-      </div>
-
-      <!-- UNAUTHENTICATED WELCOME & SIGN IN / REGISTER GATE -->
-      <div id="unauthGateContainer" class="max-w-md mx-auto my-12 pastel-card rounded-3xl p-8 shadow-sm border border-slate-200">
-        
-        <div class="text-center mb-6">
-          <div class="w-12 h-12 mx-auto mb-3 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-xs">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-          </div>
-          <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Research & Milestone Tracker</h2>
-          <p class="text-xs text-slate-500 mt-1">Sign in to your private workspace or create a free isolated account.</p>
-        </div>
-
-        <!-- Auth Tabs: Sign In vs Create Account -->
-        <div class="flex rounded-xl bg-slate-100 p-1 mb-5 border border-slate-200/80">
-          <button id="tabBtnLogin" onclick="switchAuthTab('login')" class="flex-1 py-1.5 text-xs font-bold rounded-lg bg-white text-slate-900 shadow-xs transition">Sign In</button>
-          <button id="tabBtnRegister" onclick="switchAuthTab('register')" class="flex-1 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition">Create Account</button>
-        </div>
-
-        <!-- Sign In Form -->
-        <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
-            <input type="email" id="loginEmail" required class="w-full bg-slate-50 text-xs rounded-xl px-3.5 py-2.5 border border-slate-200 text-slate-900 outline-none focus:bg-white focus:border-indigo-500 transition" placeholder="name@domain.com">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Password</label>
-            <input type="password" id="loginPassword" required class="w-full bg-slate-50 text-xs rounded-xl px-3.5 py-2.5 border border-slate-200 text-slate-900 outline-none focus:bg-white focus:border-indigo-500 transition" placeholder="••••••••">
-          </div>
-          <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition shadow-xs">
-            Sign In to Workspace
-          </button>
-        </form>
-
-        <!-- Register Form -->
-        <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-4 hidden">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
-            <input type="text" id="regFullName" required class="w-full bg-slate-50 text-xs rounded-xl px-3.5 py-2.5 border border-slate-200 text-slate-900 outline-none focus:bg-white focus:border-indigo-500 transition" placeholder="e.g. Alex Morgan">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
-            <input type="email" id="regEmail" required class="w-full bg-slate-50 text-xs rounded-xl px-3.5 py-2.5 border border-slate-200 text-slate-900 outline-none focus:bg-white focus:border-indigo-500 transition" placeholder="name@domain.com">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Password</label>
-            <input type="password" id="regPassword" required minlength="6" class="w-full bg-slate-50 text-xs rounded-xl px-3.5 py-2.5 border border-slate-200 text-slate-900 outline-none focus:bg-white focus:border-indigo-500 transition" placeholder="Min. 6 characters">
-          </div>
-          <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition shadow-xs">
-            Create Isolated Workspace
-          </button>
-        </form>
-
-        <div id="authAlert" class="hidden mt-4 p-3 rounded-xl text-xs font-medium"></div>
-
-        <div class="mt-6 pt-4 border-t border-slate-200 text-center">
-          <p class="text-[11px] text-slate-400">Zero-Trust Partitioning: Your deliverables remain completely private and isolated to your login.</p>
-        </div>
       </div>
 
     </main>
@@ -901,15 +938,25 @@ export class AppController {
     function bootApp() {
       const authContainer = document.getElementById('authAppContainer');
       const unauthGate = document.getElementById('unauthGateContainer');
+      const sidebar = document.getElementById('sidebar');
+      const mainViewport = document.getElementById('mainViewport');
       const sidebarProfile = document.getElementById('sidebarUserProfile');
       const btnHeaderNewMilestone = document.getElementById('btnHeaderNewMilestone');
       const btnHeaderSignIn = document.getElementById('btnHeaderSignIn');
+      const viewHeaderTitle = document.getElementById('viewHeaderTitle');
+      const viewHeaderSubtitle = document.getElementById('viewHeaderSubtitle');
 
       if (authToken && currentUser) {
+        // Authenticated State: Show Sidebar, shift viewport with ml-64, show workspace
+        sidebar.classList.remove('hidden');
+        mainViewport.classList.add('ml-64');
         authContainer.classList.remove('hidden');
         unauthGate.classList.add('hidden');
         btnHeaderNewMilestone.classList.remove('hidden');
         btnHeaderSignIn.classList.add('hidden');
+
+        viewHeaderTitle.textContent = 'Milestone Tracker';
+        viewHeaderSubtitle.textContent = 'Track and customize your research deliverables';
 
         const initials = (currentUser?.fullName || 'User').split(' ').map(n=>n[0]).join('').substring(0, 2).toUpperCase();
 
@@ -933,16 +980,16 @@ export class AppController {
         fetchMetrics();
         fetchTelemetry();
       } else {
+        // Unauthenticated State: Hide Sidebar completely, full-width viewport (ml-0), show landing
+        sidebar.classList.add('hidden');
+        mainViewport.classList.remove('ml-64');
         authContainer.classList.add('hidden');
         unauthGate.classList.remove('hidden');
         btnHeaderNewMilestone.classList.add('hidden');
         btnHeaderSignIn.classList.remove('hidden');
 
-        sidebarProfile.innerHTML = 
-          '<button onclick="focusAuthModal()" class="w-full py-2 px-3 text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-xl hover:bg-indigo-100 transition flex items-center justify-center space-x-1.5">' +
-            '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>' +
-            '<span>Sign In / Register</span>' +
-          '</button>';
+        viewHeaderTitle.textContent = 'UniBench';
+        viewHeaderSubtitle.textContent = 'Autonomous research deliverables & substrate benchmarking';
       }
     }
 
