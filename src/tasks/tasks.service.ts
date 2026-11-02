@@ -8,8 +8,8 @@ import { TaskQueryDto } from './dto/task-query.dto';
 export class TasksService {
   constructor(private readonly db: DatabaseService) {}
 
-  async findAll(query: TaskQueryDto) {
-    let q = this.db.getClient().from('tasks').select('*', { count: 'exact' });
+  async findAll(userId: string, query: TaskQueryDto) {
+    let q = this.db.getClient().from('tasks').select('*', { count: 'exact' }).eq('user_id', userId);
 
     if (query.status) {
       q = q.eq('status', query.status);
@@ -22,9 +22,9 @@ export class TasksService {
     }
 
     const offset = query.offset ?? 0;
-    const limit = query.limit ?? 20;
+    const limit = query.limit ?? 50;
 
-    q = q.order('created_at', { ascending: false }).range(offset, offset + limit - 1);
+    q = q.order('created_at', { ascending: true }).range(offset, offset + limit - 1);
 
     const { data, count, error } = await q;
 
@@ -36,22 +36,29 @@ export class TasksService {
       total: count,
       limit,
       offset,
-      data,
+      data: data || [],
     };
   }
 
-  async findOne(id: string) {
-    const { data, error } = await this.db.getClient().from('tasks').select('*').eq('id', id).single();
+  async findOne(userId: string, id: string) {
+    const { data, error } = await this.db
+      .getClient()
+      .from('tasks')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', userId)
+      .single();
 
     if (error || !data) {
-      throw new NotFoundException(`Task with ID ${id} not found`);
+      throw new NotFoundException(`Milestone not found or unauthorized`);
     }
 
     return data;
   }
 
-  async create(dto: CreateTaskDto) {
+  async create(userId: string, dto: CreateTaskDto) {
     const payload = {
+      user_id: userId,
       title: dto.title,
       description: dto.description || '',
       status: dto.status || 'PENDING',
@@ -70,34 +77,61 @@ export class TasksService {
     return data;
   }
 
-  async update(id: string, dto: UpdateTaskDto) {
-    // Verify existence
-    await this.findOne(id);
+  async update(userId: string, id: string, dto: UpdateTaskDto) {
+    await this.findOne(userId, id);
 
     const updates: Record<string, any> = {
       ...dto,
       updated_at: new Date().toISOString(),
     };
 
-    const { data, error } = await this.db.getClient().from('tasks').update(updates).eq('id', id).select().single();
+    const { data, error } = await this.db
+      .getClient()
+      .from('tasks')
+      .update(updates)
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select()
+      .single();
 
     if (error) {
-      throw new InternalServerErrorException(`Failed to update task: ${error.message}`);
+      throw new InternalServerErrorException(`Failed to update milestone: ${error.message}`);
     }
 
     return data;
   }
 
-  async remove(id: string) {
-    await this.findOne(id);
+  async remove(userId: string, id: string) {
+    await this.findOne(userId, id);
 
-    const { error } = await this.db.getClient().from('tasks').delete().eq('id', id);
+    const { error } = await this.db.getClient().from('tasks').delete().eq('id', id).eq('user_id', userId);
 
     if (error) {
-      throw new InternalServerErrorException(`Failed to delete task: ${error.message}`);
+      throw new InternalServerErrorException(`Failed to delete milestone: ${error.message}`);
     }
 
-    return { success: true, message: `Task ${id} successfully deleted` };
+    return { success: true, message: `Milestone ${id} successfully removed` };
+  }
+
+  async getMetrics(userId: string) {
+    const { data, error } = await this.db.getClient().from('tasks').select('status, priority').eq('user_id', userId);
+
+    if (error) {
+      return { total: 0, completed: 0, inProgress: 0, criticalHigh: 0, completionRate: 0 };
+    }
+
+    const total = data.length;
+    const completed = data.filter((t) => t.status === 'COMPLETED').length;
+    const inProgress = data.filter((t) => t.status === 'IN_PROGRESS').length;
+    const criticalHigh = data.filter((t) => t.priority === 'CRITICAL' || t.priority === 'HIGH').length;
+    const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    return {
+      total,
+      completed,
+      inProgress,
+      criticalHigh,
+      completionRate,
+    };
   }
 }
-

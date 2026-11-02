@@ -9,66 +9,72 @@ import {
   Patch,
   Post,
   Query,
+  Req,
+  UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { TaskQueryDto } from './dto/task-query.dto';
 import { TaskResponseDto } from './dto/task-response.dto';
+import { AuthGuard } from '../auth/auth.guard';
 
 @ApiTags('tasks')
+@ApiBearerAuth()
+@UseGuards(AuthGuard)
 @Controller('tasks')
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
+  @Get('metrics')
+  @ApiOperation({ summary: 'Get user milestone statistics', description: 'Returns completion rate and priority distributions.' })
+  async getMetrics(@Req() req: any) {
+    return this.tasksService.getMetrics(req.user.userId);
+  }
+
   @Get()
   @ApiOperation({
-    summary: 'List all tasks',
-    description: 'Retrieve a paginated list of tasks with optional filtering by status, priority, or search keyword.',
+    summary: 'List user tasks',
+    description: 'Retrieve paginated tasks strictly belonging to the authenticated user.',
   })
-  @ApiResponse({ status: 200, description: 'Paginated tasks returned successfully' })
-  async findAll(@Query() query: TaskQueryDto) {
-    return this.tasksService.findAll(query);
+  @ApiResponse({ status: 200, description: 'Paginated user tasks returned successfully' })
+  async findAll(@Req() req: any, @Query() query: TaskQueryDto) {
+    return this.tasksService.findAll(req.user.userId, query);
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get task by ID', description: 'Retrieve full details of a specific task by its UUID.' })
-  @ApiParam({ name: 'id', description: 'Task UUID identifier', example: '4303d652-3ea9-4a33-afe4-3dfe01fda00f' })
+  @ApiOperation({ summary: 'Get task by ID', description: 'Retrieve task if owned by authenticated user.' })
+  @ApiParam({ name: 'id', description: 'Task UUID identifier' })
   @ApiResponse({ status: 200, description: 'Task details found', type: TaskResponseDto })
   @ApiResponse({ status: 404, description: 'Task not found' })
-  async findOne(@Param('id') id: string) {
-    return this.tasksService.findOne(id);
+  async findOne(@Req() req: any, @Param('id') id: string) {
+    return this.tasksService.findOne(req.user.userId, id);
   }
 
   @Post()
-  @ApiOperation({ summary: 'Create a new task', description: 'Persist a new task in Supabase PostgreSQL database.' })
+  @ApiOperation({ summary: 'Create a new task', description: 'Create task tied to authenticated user profile.' })
   @ApiResponse({ status: 201, description: 'Task successfully created', type: TaskResponseDto })
-  @ApiResponse({ status: 400, description: 'Invalid input payload' })
-  async create(@Body() createTaskDto: CreateTaskDto) {
-    return this.tasksService.create(createTaskDto);
+  async create(@Req() req: any, @Body() createTaskDto: CreateTaskDto) {
+    return this.tasksService.create(req.user.userId, createTaskDto);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update an existing task', description: 'Modify task attributes or attach AI-generated synthesis.' })
+  @ApiOperation({ summary: 'Update a task', description: 'Update task if owned by user.' })
   @ApiParam({ name: 'id', description: 'Task UUID identifier' })
   @ApiResponse({ status: 200, description: 'Task updated successfully', type: TaskResponseDto })
-  @ApiResponse({ status: 404, description: 'Task not found' })
-  async update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
-    return this.tasksService.update(id, updateTaskDto);
+  async update(@Req() req: any, @Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
+    return this.tasksService.update(req.user.userId, id, updateTaskDto);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Delete a task', description: 'Remove a task permanently from the PostgreSQL database.' })
+  @ApiOperation({ summary: 'Delete a task', description: 'Delete task if owned by user.' })
   @ApiParam({ name: 'id', description: 'Task UUID identifier' })
-  @ApiResponse({ status: 200, description: 'Task deleted successfully' })
-  @ApiResponse({ status: 404, description: 'Task not found' })
-  async remove(@Param('id') id: string) {
-    return this.tasksService.remove(id);
+  async remove(@Req() req: any, @Param('id') id: string) {
+    return this.tasksService.remove(req.user.userId, id);
   }
 }
-

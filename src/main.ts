@@ -20,9 +20,11 @@ export function setupSwagger(app: any) {
     .setVersion('1.0.0')
     .setContact('Deshan Fernando', 'https://github.com/deshanFdo', 'deshanfernando67@gmail.com')
     .setLicense('MIT', 'https://opensource.org/licenses/MIT')
-    .addTag('tasks', 'CRUD and querying for PostgreSQL tasks')
+    .addTag('auth', 'Authentication and researcher registration')
+    .addTag('tasks', 'CRUD and querying for user-isolated PostgreSQL tasks')
     .addTag('ai', 'OpenAI-powered task synthesis and entity enrichment')
     .addTag('health', 'Server and database telemetry metrics')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
