@@ -2,9 +2,14 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import express, { Express, Request, Response } from 'express';
+import { ExpressAdapter } from '@nestjs/platform-express';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
+
+const server: Express = express();
+let isAppInitialized = false;
 
 export function setupSwagger(app: any) {
   const config = new DocumentBuilder()
@@ -21,7 +26,7 @@ export function setupSwagger(app: any) {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  
+
   const swaggerOptions = {
     customCssUrl: 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui.min.css',
     customJs: [
@@ -36,30 +41,41 @@ export function setupSwagger(app: any) {
   return document;
 }
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-
-  app.enableCors({
-    origin: '*',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-  });
-
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      transform: true,
-      forbidNonWhitelisted: true,
-    }),
-  );
-
-  setupSwagger(app);
-
-  const port = process.env.PORT || 3000;
-  await app.listen(port);
-  console.log(`Server running at http://localhost:${port}`);
-  console.log(`Swagger documentation available at http://localhost:${port}/docs`);
+export async function createNestServer(): Promise<Express> {
+  if (!isAppInitialized) {
+    const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
+    app.enableCors({
+      origin: '*',
+      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    });
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        transform: true,
+        forbidNonWhitelisted: true,
+      }),
+    );
+    setupSwagger(app);
+    await app.init();
+    isAppInitialized = true;
+  }
+  return server;
 }
 
+// Default export required by Vercel Function runtime
+export default async function handler(req: Request, res: Response) {
+  await createNestServer();
+  return server(req, res);
+}
+
+// Local bootstrap
 if (!process.env.VERCEL) {
-  bootstrap();
+  createNestServer().then(() => {
+    const port = process.env.PORT || 3000;
+    server.listen(port, () => {
+      console.log(`Server running at http://localhost:${port}`);
+      console.log(`Dashboard UI available at http://localhost:${port}`);
+      console.log(`Swagger documentation available at http://localhost:${port}/docs`);
+    });
+  });
 }

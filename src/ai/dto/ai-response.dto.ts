@@ -22,3 +22,4 @@ export class AiSynthesisResponseDto {
   @ApiProperty({ example: 'OpenAI GPT-4o-mini / Resilient NLP Engine' })
   engineUsed: string;
 }
+
