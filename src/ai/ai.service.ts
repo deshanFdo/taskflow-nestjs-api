@@ -47,7 +47,7 @@ Analyze the following raw input and return a JSON object with this exact structu
 Raw Input:
 "${input}"`;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -76,7 +76,7 @@ Raw Input:
       aiSummary: parsed.aiSummary || 'Milestone formalized via Google Gemini neural model.',
       actionItems: parsed.actionItems || ['Formalize research requirements', 'Execute empirical benchmark runs'],
       suggestedTags: parsed.suggestedTags || ['Research', 'UniBench', 'FYP'],
-      engineUsed: 'Google Gemini 1.5 Flash (Live Cloud AI)',
+      engineUsed: 'Google Gemini 2.5 Flash (Live Cloud AI)',
     };
   }
 
