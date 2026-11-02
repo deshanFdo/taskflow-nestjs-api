@@ -13,9 +13,9 @@ let isAppInitialized = false;
 
 export function setupSwagger(app: any) {
   const config = new DocumentBuilder()
-    .setTitle('TaskFlow AI REST API')
+    .setTitle('UniBench FYP REST API')
     .setDescription(
-      'Production-grade NestJS & PostgreSQL (Supabase) REST API featuring OpenAPI/Swagger documentation, AI task synthesis, and cloud health monitoring.',
+      'Production-grade NestJS & PostgreSQL (Supabase) REST API tracking the UniBench Final Year Research Project. Features OpenAPI/Swagger 3.0 documentation, AI research synthesis, and live cloud telemetry.',
     )
     .setVersion('1.0.0')
     .setContact('Deshan Fernando', 'https://github.com/deshanFdo', 'deshanfernando67@gmail.com')
